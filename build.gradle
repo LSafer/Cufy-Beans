@@ -1,0 +1,21 @@
+apply plugin: 'java-library'
+apply plugin: 'groovy'
+
+repositories {
+	jcenter()
+	mavenCentral()
+	maven {
+		url "https://jitpack.io"
+	}
+}
+
+dependencies {
+	implementation 'org.codehaus.groovy:groovy-all:3.0.0-rc-1'
+	implementation 'com.github.LSaferSE:Cufy-Util:0.0.1-beta1'
+	implementation 'com.github.LSaferSE:Cufy:0.0.1-alpha0'
+
+	testImplementation 'junit:junit:4.11'
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
