@@ -11,8 +11,8 @@ repositories {
 
 dependencies {
 	implementation 'org.codehaus.groovy:groovy-all:3.0.0-rc-1'
-	implementation 'com.github.LSaferSE:Cufy:0.0.1'
-	implementation 'com.github.LSaferSE:Cufy-Util:0.0.1'
+	implementation 'com.github.LSafer:Cufy-Util:0.0.1'
+	implementation 'com.github.LSafer:Cufy:0.0.1'
 
 	testImplementation 'junit:junit:4.11'
 }
