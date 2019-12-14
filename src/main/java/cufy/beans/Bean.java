@@ -14,7 +14,7 @@ import cufy.lang.Caster;
 import cufy.lang.Global;
 import cufy.lang.IllegalAnnotationException;
 import cufy.lang.TypedValue;
-import cufy.lang.alter.Cast;
+import org.cufy.lang.Cast;
 import cufy.util.ObjectUtil;
 import cufy.util.ReflectUtil;
 
