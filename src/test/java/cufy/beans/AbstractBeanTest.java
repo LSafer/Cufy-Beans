@@ -10,9 +10,11 @@
 
 package cufy.beans;
 
-import cufy.lang.TypedValue;
+import cufy.lang.Value;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static cufy.beans.Bean.Property.CONVERT;
 
 @SuppressWarnings({"JavaDoc"})
 public class AbstractBeanTest {
@@ -20,7 +22,7 @@ public class AbstractBeanTest {
 	@Test(timeout = 100)
 	public void struct_put_get_size() {
 		AbstractBean<Object, Object> bean = new AbstractBean<Object, Object>() {
-			@Property(key = @TypedValue(value = "false", type = Boolean.class), onTypeMismatch = CAST)
+			@Property(key = @Value(value = "false", type = Boolean.class), onTypeMismatch = CONVERT)
 			private Integer integer = 45;
 		};
 

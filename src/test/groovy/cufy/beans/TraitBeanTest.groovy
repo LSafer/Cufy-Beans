@@ -10,7 +10,8 @@
 
 package cufy.beans
 
-import cufy.lang.TypedValue
+
+import cufy.lang.Value
 import org.junit.Assert
 import org.junit.Test
 
@@ -29,7 +30,7 @@ class TraitBeanTest {
 	}
 
 	static class TestTraitBean implements TraitBean {
-		@Bean.Property(key = @TypedValue(value = "false", type = Boolean.class), onTypeMismatch = Bean.CAST)
+		@Bean.Property(key = @Value(value = "false", type = Boolean.class), onTypeMismatch = Bean.Property.CONVERT)
 		public Integer i
 	}
 }

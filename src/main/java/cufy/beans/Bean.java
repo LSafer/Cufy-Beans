@@ -10,13 +10,13 @@
  */
 package cufy.beans;
 
-import cufy.lang.Caster;
+import cufy.lang.Converter;
 import cufy.lang.Global;
 import cufy.lang.IllegalAnnotationException;
-import cufy.lang.TypedValue;
-import org.cufy.lang.Cast;
+import cufy.lang.Value;
 import cufy.util.ObjectUtil;
 import cufy.util.ReflectUtil;
+import org.cufy.lang.BaseConverter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -38,31 +38,6 @@ import java.util.*;
  */
 @SuppressWarnings("ParameterNameDiffersFromOverriddenParameter")
 public interface Bean<K, V> extends Map<K, V> {
-	/**
-	 * A reference represent 'as if not annotated'.
-	 */
-	String AINA = "aina";
-	/**
-	 * A reference represents casting an object.
-	 */
-	String CAST = "cast";
-	/**
-	 * A reference represents {@link Property#defaultValue()}.
-	 */
-	String DEFAULT = "defaultValue";
-	/**
-	 * A reference represents ignoration.
-	 */
-	String IGNORE = "ignore";
-	/**
-	 * A reference represents the value 'null'.
-	 */
-	String NULL = "null";
-	/**
-	 * A reference represents throwing an exception.
-	 */
-	String THROW = "throw";
-
 	@Override
 	default int size() {
 		//Stolen from java.util.AbstractMap.class 😛
@@ -227,7 +202,7 @@ public interface Bean<K, V> extends Map<K, V> {
 	}
 
 	@Override
-	default Set<Map.Entry<K, V>> entrySet() {
+	default Set<Entry<K, V>> entrySet() {
 		return (Set<Map.Entry<K, V>>) (Object) this.getProperties();
 	}
 
@@ -301,11 +276,11 @@ public interface Bean<K, V> extends Map<K, V> {
 	default K getKey(Field field) {
 		ObjectUtil.requireNonNull(field, "field");
 		Property property = ObjectUtil.requireNonNull(field.getAnnotation(Property.class), "property");
-		TypedValue key;
+		Value key;
 
 		if (field.isAnnotationPresent(Property.class))
 			if (!(key = property.key()).isnull())
-				return (K) TypedValue.util.construct(key);
+				return (K) Value.util.construct(key);
 
 		return (K) field.getName();
 	}
@@ -336,33 +311,53 @@ public interface Bean<K, V> extends Map<K, V> {
 	@Target(ElementType.FIELD)
 	@interface Property {
 		/**
+		 * A reference represents casting an object.
+		 */
+		String CONVERT = "convert";
+		/**
+		 * A reference represents {@link Property#defaultValue()}.
+		 */
+		String DEFAULT = "defaultValue";
+		/**
+		 * A reference represents ignoration.
+		 */
+		String IGNORE = "ignore";
+		/**
+		 * A reference represents the value 'null'.
+		 */
+		String NULL = "null";
+		/**
+		 * A reference represents throwing an exception.
+		 */
+		String THROW = "throw";
+
+		/**
 		 * The caster that will be used to cast a value to be set. When that value don't match the type of the annotated field.
 		 *
 		 * @return the caster of the annotated field
 		 * @apiNote not changing it may occur some exceptions. Because the default caster is an abstract class an not suppose to be used as a caster!
 		 */
-		Class<? extends Caster> caster() default Cast.class;
+		Class<? extends Converter> converter() default BaseConverter.class;
 
 		/**
 		 * The default value of this property.
 		 *
 		 * @return the default value of this property
 		 */
-		TypedValue defaultValue() default @TypedValue(value = "", isnull = true);
+		Value defaultValue() default @Value(isnull = true);
 
 		/**
 		 * The key of the annotated entry-field. This will override the default key.
 		 *
 		 * @return the key of the annotated entry-field
 		 */
-		TypedValue key() default @TypedValue(value = "", isnull = true);
+		Value key() default @Value(isnull = true);
 
 		/**
 		 * What to do when the value is equals to null. And a get call invoked to the property.
 		 *
 		 * <ul>
 		 *     Expected:
-		 *     <li>{@link #AINA} as if not annotated</li>
 		 *     <li>{@link #DEFAULT} return the default value</li>
 		 *     <li>{@link #NULL} return null</li>
 		 *     <li>{@link #THROW} throw {@link java.lang.IllegalArgumentException}</li>
@@ -378,7 +373,6 @@ public interface Bean<K, V> extends Map<K, V> {
 		 *
 		 * <ul>
 		 *     Expected:
-		 *     <li>{@link #AINA} as if not annotated</li>
 		 *     <li>{@link #DEFAULT} set to the default value</li>
 		 *     <li>{@link #IGNORE} ignore the call</li>
 		 *     <li>{@link #NULL} nullify the field</li>
@@ -395,8 +389,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		 *
 		 * <ul>
 		 *     Expected:
-		 *     <li>{@link #AINA} as if not annotated</li>
-		 *     <li>{@link #CAST} cast the value</li>
+		 *     <li>{@link #CONVERT} cast the value</li>
 		 *     <li>{@link #DEFAULT} set to the default value</li>
 		 *     <li>{@link #IGNORE} ignore the call</li>
 		 *     <li>{@link #NULL} nullify the field</li>
@@ -643,13 +636,11 @@ public interface Bean<K, V> extends Map<K, V> {
 			if (this.config != null && value == null)
 				//CONFIGURATION MODS
 				switch (this.config.onGetNull()) {
-					case AINA:
-						break;
-					case DEFAULT:
-						return (V) TypedValue.util.construct(this.config.defaultValue());
-					case NULL:
+					case Property.DEFAULT:
+						return (V) Value.util.construct(this.config.defaultValue());
+					case Property.NULL:
 						return null;
-					case THROW:
+					case Property.THROW:
 						throw new IllegalArgumentException("bean.get(" + this.key + ") is null");
 					default:
 						throw new IllegalAnnotationException("@Property(onGetNull=UnknownConstant)");
@@ -675,18 +666,17 @@ public interface Bean<K, V> extends Map<K, V> {
 				if (this.config != null)
 					//CONFIGURATIONS MODS
 					switch (this.config.onTypeMismatch()) {
-						case AINA:
-							break;
-						case CAST:
-							return this.bean.put(this.key, type.cast(Global.get(this.config.caster()).cast(value, type)));
-						case DEFAULT:
-							return this.bean.put(key, type.cast(TypedValue.util.construct(this.config.defaultValue(), type)));
-						case IGNORE:
+						case Property.CONVERT:
+							return this.bean.put(this.key, type.cast(Global.get(this.config.converter()).convert(value, type)));
+						case Property.DEFAULT:
+							return this.bean.put(key, type.cast(Value.util.construct(this.config.defaultValue(), type)));
+						case Property.IGNORE:
 							return this.bean.put(key, this.getValue());
-						case NULL:
+						case Property.NULL:
 							return this.bean.put(key, null);
-						case THROW:
-							throw new IllegalArgumentException(value.getClass() + " is not an instance of " + type);
+						case Property.THROW:
+							//Thrown below 😉
+							break;
 						default:
 							throw new IllegalAnnotationException("@Property(onTypeMismatch=UnknownConstant)");
 					}
@@ -743,15 +733,13 @@ public interface Bean<K, V> extends Map<K, V> {
 			if (this.config != null)
 				//CONFIGURATIONS MODS
 				switch (this.config.onRemove()) {
-					case AINA:
-						break;
-					case DEFAULT:
-						return this.bean.put(this.key, TypedValue.util.construct(this.config.defaultValue(), this.getType()));
-					case IGNORE:
+					case Property.DEFAULT:
+						return this.bean.put(this.key, Value.util.construct(this.config.defaultValue(), this.getType()));
+					case Property.IGNORE:
 						return this.bean.put(this.key, this.getValue());
-					case NULL:
+					case Property.NULL:
 						return this.setValue(null);
-					case THROW:
+					case Property.THROW:
 						throw new UnsupportedOperationException("remove");
 					default:
 						throw new IllegalAnnotationException("@Property(onRemove=UnknownConstant)");
