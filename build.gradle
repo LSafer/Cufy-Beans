@@ -10,9 +10,9 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.codehaus.groovy:groovy-all:3.0.0-rc-1'
-	implementation 'com.github.cufyorg:util:0.0.1'
-	implementation 'com.github.cufyorg:base:0.0.2'
+	compileOnly 'org.codehaus.groovy:groovy-all:3.0.0-rc-1'
+	compileOnly 'com.github.cufyorg:util:0.0.1'
+	complleOnly 'com.github.cufyorg:base:0.0.2'
 
 	testImplementation 'junit:junit:4.11'
 }
