@@ -7,7 +7,6 @@
  *   By adding a new header (at the bottom of this header)
  *   with the word "Editor" on top of it.
  */
-
 package cufy.beans
 
 /**
@@ -64,7 +63,8 @@ trait TraitBean<K, V> implements FullBean<K, V>, Serializable {
 	 * @throws IOException            if an I/O error occurs.
 	 */
 	private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
-		for (int length = stream.readInt(), i = 0; i < length; i++)
+		int length = stream.readInt()
+		for (int i = 0; i < length; i++)
 			this.put((K) stream.readObject(), (V) stream.readObject())
 	}
 

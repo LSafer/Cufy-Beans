@@ -11,9 +11,10 @@
 
 package cufy.beans;
 
-import cufy.util.ObjectUtil;
+import cufy.util.Object$;
 
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 /**
  * An implementation ready for the interface {@link Bean}. Increases teh ability to store un-fielded properties.
@@ -27,11 +28,11 @@ import java.lang.reflect.Field;
 public interface FullBean<K, V> extends Bean<K, V> {
 	@Override
 	default VirtualEntry<K, V> getEntry(K key, Field field) {
-		ObjectUtil.requireNonNull(field, "field");
-		Property property = ObjectUtil.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
-		Properties<K, V> properties = ObjectUtil.requireNonNull(this.getProperties(), "properties()");
+		Objects.requireNonNull(field, "field");
+		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
+		Properties<K, V> properties = Objects.requireNonNull(this.getProperties(), "properties()");
 
-		return ObjectUtil.requireNonNullElseGet(properties.get(key), () -> {
+		return Object$.requireNonNullElseGet(properties.get(key), () -> {
 			VirtualEntry<K, V> entry = new VirtualEntry<>(this, properties, field, property, key);
 			properties.add(entry);
 			return entry;
@@ -40,10 +41,13 @@ public interface FullBean<K, V> extends Bean<K, V> {
 
 	@Override
 	default VirtualEntry<K, V> getEntry(K key) {
-		Properties<K, V> properties = ObjectUtil.requireNonNull(this.getProperties(), "properties()");
+		Properties<K, V> properties = Objects.requireNonNull(this.getProperties(), "properties()");
 		Field field = this.getField(key);
 
-		return field != null ? this.getEntry(key, field) : ObjectUtil.requireNonNullElseGet(properties.get(key), () -> {
+		if (field != null)
+			return this.getEntry(key, field);
+
+		return Object$.requireNonNullElseGet(properties.get(key), () -> {
 			VirtualEntry<K, V> entry = new VirtualEntry<>(this, properties, key);
 			properties.add(entry);
 			return entry;
@@ -52,7 +56,7 @@ public interface FullBean<K, V> extends Bean<K, V> {
 
 	@Override
 	default Field getField(K key) {
-		Properties<K, V> properties = ObjectUtil.requireNonNull(this.getProperties(), "properties()");
+		Properties<K, V> properties = Objects.requireNonNull(this.getProperties(), "properties()");
 		VirtualEntry<K, V> entry = properties.get(key);
 
 		return entry == null ? Bean.super.getField(key) : entry.field;

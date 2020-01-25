@@ -11,6 +11,7 @@
 package cufy.beans;
 
 import cufy.lang.Value;
+import org.cufy.lang.JSONConverter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,7 +23,7 @@ public class AbstractBeanTest {
 	@Test(timeout = 100)
 	public void struct_put_get_size() {
 		AbstractBean<Object, Object> bean = new AbstractBean<Object, Object>() {
-			@Property(key = @Value(value = "false", type = Boolean.class), onTypeMismatch = CONVERT)
+			@Property(key = @Value(value = "false", type = Boolean.class, converter = JSONConverter.class), onTypeMismatch = CONVERT, converter = JSONConverter.class)
 			private Integer integer = 45;
 		};
 

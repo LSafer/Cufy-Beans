@@ -11,6 +11,7 @@
 package cufy.beans;
 
 import cufy.lang.Value;
+import org.cufy.lang.JSONConverter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,10 +22,10 @@ public class BeanTest {
 	@Test(timeout = 50)
 	public void getNull_remove() {
 		Bean<Object, Object> bean = new Bean<Object, Object>() {
-			@Property(onRemove = DEFAULT, defaultValue = @Value(value = "12", type = Integer.class))
+			@Property(onRemove = DEFAULT, defaultValue = @Value(value = "12", type = Integer.class, converter = JSONConverter.class))
 			private Integer defaultRemove = 0;
 
-			@Property(onGetNull = DEFAULT, defaultValue = @Value(value = "14", type = Integer.class))
+			@Property(onGetNull = DEFAULT, defaultValue = @Value(value = "14", type = Integer.class, converter = JSONConverter.class))
 			private Integer nullRemove = 0;
 
 			@Property(onRemove = THROW, onGetNull = THROW)
@@ -53,7 +54,7 @@ public class BeanTest {
 	@Test(timeout = 50)
 	public void struct_put_get_size() {
 		Bean<Object, Object> bean = new Bean<Object, Object>() {
-			@Property(key = @Value(value = "false", type = Boolean.class), onTypeMismatch = CONVERT)
+			@Property(key = @Value(value = "false", type = Boolean.class, converter = JSONConverter.class), onTypeMismatch = CONVERT, converter = JSONConverter.class)
 			private int property0 = 90;
 		};
 

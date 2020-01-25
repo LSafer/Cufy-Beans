@@ -10,13 +10,11 @@
  */
 package cufy.beans;
 
+import cufy.lang.BadAnnotationException;
 import cufy.lang.Converter;
 import cufy.lang.Global;
-import cufy.lang.IllegalAnnotationException;
 import cufy.lang.Value;
-import cufy.util.ObjectUtil;
-import cufy.util.ReflectUtil;
-import org.cufy.lang.BaseConverter;
+import cufy.util.Reflect$;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,10 +31,9 @@ import java.util.*;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 18 release (07-Dec-2019)
+ * @version 19 release (26-Jan-2020)
  * @since 11-Jun-19
  */
-@SuppressWarnings("ParameterNameDiffersFromOverriddenParameter")
 public interface Bean<K, V> extends Map<K, V> {
 	@Override
 	default int size() {
@@ -94,7 +91,7 @@ public interface Bean<K, V> extends Map<K, V> {
 
 	@Override
 	default void putAll(Map<? extends K, ? extends V> map) {
-		ObjectUtil.requireNonNull(map, "map");
+		Objects.requireNonNull(map, "map");
 		map.forEach(this::put);
 	}
 
@@ -215,8 +212,8 @@ public interface Bean<K, V> extends Map<K, V> {
 	 * @throws NullPointerException if the given field is null or the given field not annotated with {@link Property}
 	 */
 	default VirtualEntry<K, V> getEntry(K key, Field field) {
-		ObjectUtil.requireNonNull(field, "field");
-		Property property = ObjectUtil.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Bean.Property.class)");
+		Objects.requireNonNull(field, "field");
+		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Bean.Property.class)");
 
 		return new VirtualEntry<>(this, field, property, key);
 	}
@@ -240,7 +237,7 @@ public interface Bean<K, V> extends Map<K, V> {
 	 * @throws NullPointerException if the given field is null or the given field don't have a property
 	 */
 	default VirtualEntry<K, V> getEntry(Field field) {
-		ObjectUtil.requireNonNull(field, "field");
+		Objects.requireNonNull(field, "field");
 		return this.getEntry(this.getKey(field), field);
 	}
 
@@ -252,13 +249,13 @@ public interface Bean<K, V> extends Map<K, V> {
 	 */
 	default Field getField(K key) {
 		if (key == null) {
-			for (Field field : ReflectUtil.allFields(this.getClass()))
+			for (Field field : Reflect$.getAllFields(this.getClass()))
 				if (field.isAnnotationPresent(Property.class) && this.getKey(field) == null)
 					return field;
 		} else {
 			int hashCode = key.hashCode();
 			K key1;
-			for (Field field : ReflectUtil.allFields(this.getClass()))
+			for (Field field : Reflect$.getAllFields(this.getClass()))
 				if (field.isAnnotationPresent(Property.class) &&
 					(key1 = this.getKey(field)) != null && hashCode == key1.hashCode() && key.equals(key1))
 					return field;
@@ -274,8 +271,8 @@ public interface Bean<K, V> extends Map<K, V> {
 	 * @throws NullPointerException if the given field is null or the given field not annotated with {@link Property}
 	 */
 	default K getKey(Field field) {
-		ObjectUtil.requireNonNull(field, "field");
-		Property property = ObjectUtil.requireNonNull(field.getAnnotation(Property.class), "property");
+		Objects.requireNonNull(field, "field");
+		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "property");
 		Value key;
 
 		if (field.isAnnotationPresent(Property.class))
@@ -295,7 +292,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		Set<K> keys = new HashSet<>(10);
 
 		Property property;
-		for (Field field : ReflectUtil.allFields(this.getClass()))
+		for (Field field : Reflect$.getAllFields(this.getClass()))
 			if ((property = field.getAnnotation(Property.class)) != null)
 				properties.add(new VirtualEntry<>(this, field, property, this.getKey(field)));
 
@@ -337,21 +334,21 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @return the caster of the annotated field
 		 * @apiNote not changing it may occur some exceptions. Because the default caster is an abstract class an not suppose to be used as a caster!
 		 */
-		Class<? extends Converter> converter() default BaseConverter.class;
+		Class<? extends Converter> converter() default Converter.class;
 
 		/**
 		 * The default value of this property.
 		 *
 		 * @return the default value of this property
 		 */
-		Value defaultValue() default @Value(isnull = true);
+		Value defaultValue() default @Value(converter = Converter.class, isnull = true);
 
 		/**
 		 * The key of the annotated entry-field. This will override the default key.
 		 *
 		 * @return the key of the annotated entry-field
 		 */
-		Value key() default @Value(isnull = true);
+		Value key() default @Value(converter = Converter.class, isnull = true);
 
 		/**
 		 * What to do when the value is equals to null. And a get call invoked to the property.
@@ -364,7 +361,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * </ul>
 		 *
 		 * @return what to do when trying to get the value but it equals to null
-		 * @throws IllegalAnnotationException when set to unexpected value
+		 * @throws BadAnnotationException when set to unexpected value
 		 */
 		String onGetNull() default NULL;
 
@@ -380,7 +377,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * </ul>
 		 *
 		 * @return what to do when the annotated field to be removed
-		 * @throws IllegalAnnotationException when set to unexpected value
+		 * @throws BadAnnotationException when set to unexpected value
 		 */
 		String onRemove() default NULL;
 
@@ -397,7 +394,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * </ul>
 		 *
 		 * @return what to do when the annotated field's value to be set to different type.
-		 * @throws IllegalAnnotationException when set to unexpected value
+		 * @throws BadAnnotationException when set to unexpected value
 		 */
 		String onTypeMismatch() default THROW;
 
@@ -462,7 +459,7 @@ public interface Bean<K, V> extends Map<K, V> {
 
 		@Override
 		public boolean add(VirtualEntry<K, V> property) {
-			ObjectUtil.requireNonNull(property, "property");
+			Objects.requireNonNull(property, "property");
 			if (!super.add(property))
 				throw new IllegalStateException("The property " + property.getKey() + " stored twice!");
 			return false;
@@ -547,10 +544,10 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @throws NullPointerException if the given 'bean' or 'properties' or 'field' or 'property' is null
 		 */
 		protected VirtualEntry(Bean<K, V> bean, Properties<K, V> properties, Field field, Property config, K key) {
-			ObjectUtil.requireNonNull(bean, "bean");
-			ObjectUtil.requireNonNull(properties, "properties");
-			ObjectUtil.requireNonNull(field, "field");
-			ObjectUtil.requireNonNull(config, "config");
+			Objects.requireNonNull(bean, "bean");
+			Objects.requireNonNull(properties, "properties");
+			Objects.requireNonNull(field, "field");
+			Objects.requireNonNull(config, "config");
 			this.bean = bean;
 			this.key = key;
 			this.field = field;
@@ -567,8 +564,8 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @throws NullPointerException if the given 'bean' or 'properties' is null
 		 */
 		protected VirtualEntry(Bean<K, V> bean, Properties<K, V> properties, K key) {
-			ObjectUtil.requireNonNull(bean, "bean");
-			ObjectUtil.requireNonNull(properties, "properties");
+			Objects.requireNonNull(bean, "bean");
+			Objects.requireNonNull(properties, "properties");
 			this.bean = bean;
 			this.properties = properties;
 			this.key = key;
@@ -586,9 +583,9 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @throws NullPointerException if the given 'bean' or 'field' or 'property' is null
 		 */
 		protected VirtualEntry(Bean<K, V> bean, Field field, Property config, K key) {
-			ObjectUtil.requireNonNull(bean, "bean");
-			ObjectUtil.requireNonNull(field, "field");
-			ObjectUtil.requireNonNull(config, "config");
+			Objects.requireNonNull(bean, "bean");
+			Objects.requireNonNull(field, "field");
+			Objects.requireNonNull(config, "config");
 			this.bean = bean;
 			this.field = field;
 			this.config = config;
@@ -606,9 +603,9 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @throws NullPointerException if the given 'bean' or 'properties' or 'property' is null
 		 */
 		protected VirtualEntry(Bean<K, V> bean, Properties<K, V> properties, Property config, K key) {
-			ObjectUtil.requireNonNull(bean, "bean");
-			ObjectUtil.requireNonNull(properties, "properties");
-			ObjectUtil.requireNonNull(config, "config");
+			Objects.requireNonNull(bean, "bean");
+			Objects.requireNonNull(properties, "properties");
+			Objects.requireNonNull(config, "config");
 			this.bean = bean;
 			this.properties = properties;
 			this.config = config;
@@ -643,7 +640,7 @@ public interface Bean<K, V> extends Map<K, V> {
 					case Property.THROW:
 						throw new IllegalArgumentException("bean.get(" + this.key + ") is null");
 					default:
-						throw new IllegalAnnotationException("@Property(onGetNull=UnknownConstant)");
+						throw new BadAnnotationException("@Property(onGetNull=UnknownConstant)");
 				}
 
 			return value;
@@ -678,7 +675,7 @@ public interface Bean<K, V> extends Map<K, V> {
 							//Thrown below 😉
 							break;
 						default:
-							throw new IllegalAnnotationException("@Property(onTypeMismatch=UnknownConstant)");
+							throw new BadAnnotationException("@Property(onTypeMismatch=UnknownConstant)");
 					}
 
 				throw new IllegalArgumentException(value.getClass() + " is not an instance of " + type);
@@ -694,7 +691,7 @@ public interface Bean<K, V> extends Map<K, V> {
 
 		@Override
 		public boolean equals(Object o) {
-			return o instanceof VirtualEntry && (this == o || ObjectUtil.hashEquals(this.key, ((VirtualEntry<?, ?>) o).getKey()));
+			return o instanceof VirtualEntry && Objects.equals(this.key, ((VirtualEntry) o).getKey());
 		}
 
 		@Override
@@ -711,11 +708,11 @@ public interface Bean<K, V> extends Map<K, V> {
 			if (this.config != null) {
 				Class<?> specified = this.config.type();
 				if (specified != Property.class)
-					return (Class<V>) ReflectUtil.objectiveClass(specified);
+					return (Class<V>) Reflect$.asObjectClass(specified);
 			}
 
 			if (this.field != null)
-				return (Class<V>) ReflectUtil.objectiveClass(this.field.getType());
+				return (Class<V>) Reflect$.asObjectClass(this.field.getType());
 
 			return (Class<V>) Object.class;
 		}
@@ -742,7 +739,7 @@ public interface Bean<K, V> extends Map<K, V> {
 					case Property.THROW:
 						throw new UnsupportedOperationException("remove");
 					default:
-						throw new IllegalAnnotationException("@Property(onRemove=UnknownConstant)");
+						throw new BadAnnotationException("@Property(onRemove=UnknownConstant)");
 				}
 
 			V value = this.setValue(null);

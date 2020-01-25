@@ -12,6 +12,7 @@ package cufy.beans
 
 
 import cufy.lang.Value
+import org.cufy.lang.JSONConverter
 import org.junit.Assert
 import org.junit.Test
 
@@ -30,7 +31,7 @@ class TraitBeanTest {
 	}
 
 	static class TestTraitBean implements TraitBean {
-		@Bean.Property(key = @Value(value = "false", type = Boolean.class), onTypeMismatch = Bean.Property.CONVERT)
+		@Bean.Property(key = @Value(value = "false", type = Boolean.class, converter = JSONConverter.class), onTypeMismatch = Bean.Property.CONVERT, converter = JSONConverter.class)
 		public Integer i
 	}
 }
