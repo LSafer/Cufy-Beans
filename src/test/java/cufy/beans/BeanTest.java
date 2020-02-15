@@ -19,7 +19,7 @@ import static cufy.beans.Bean.Property.*;
 
 @SuppressWarnings({"JavaDoc"})
 public class BeanTest {
-	@Test(timeout = 50)
+	@Test()
 	public void getNull_remove() {
 		Bean<Object, Object> bean = new Bean<Object, Object>() {
 			@Property(onRemove = DEFAULT, defaultValue = @Value(value = "12", type = Integer.class, converter = JSONConverter.class))

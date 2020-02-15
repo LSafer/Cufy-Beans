@@ -7,7 +7,6 @@
  *    By adding a new header (at the bottom of this header)
  *    with the word "Editor" on top of it.
  */
-
 package cufy.beans;
 
 import cufy.lang.Value;
@@ -20,7 +19,7 @@ import static cufy.beans.Bean.Property.CONVERT;
 @SuppressWarnings({"JavaDoc"})
 public class AbstractBeanTest {
 	@SuppressWarnings("OverwrittenKey")
-	@Test(timeout = 100)
+	@Test(timeout = 500)
 	public void struct_put_get_size() {
 		AbstractBean<Object, Object> bean = new AbstractBean<Object, Object>() {
 			@Property(key = @Value(value = "false", type = Boolean.class, converter = JSONConverter.class), onTypeMismatch = CONVERT, converter = JSONConverter.class)

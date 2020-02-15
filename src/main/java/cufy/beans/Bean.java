@@ -15,6 +15,7 @@ import cufy.lang.Converter;
 import cufy.lang.Global;
 import cufy.lang.Value;
 import cufy.util.Reflect$;
+import org.cufy.lang.BaseConverter;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -334,14 +335,14 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @return the caster of the annotated field
 		 * @apiNote not changing it may occur some exceptions. Because the default caster is an abstract class an not suppose to be used as a caster!
 		 */
-		Class<? extends Converter> converter() default Converter.class;
+		Class<? extends Converter> converter() default BaseConverter.class;
 
 		/**
 		 * The default value of this property.
 		 *
 		 * @return the default value of this property
 		 */
-		Value defaultValue() default @Value(converter = Converter.class, isnull = true);
+		Value defaultValue() default @Value(isnull = true);
 
 		/**
 		 * The key of the annotated entry-field. This will override the default key.
