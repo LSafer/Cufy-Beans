@@ -26,42 +26,39 @@ import java.util.Objects;
  * @since 09-Dec-2019
  */
 public interface FullBean<K, V> extends Bean<K, V> {
-	@Override
-	default VirtualEntry<K, V> getEntry(K key, Field field) {
-		Objects.requireNonNull(field, "field");
-		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
-		Properties<K, V> properties = Objects.requireNonNull(this.getProperties(), "properties()");
 
-		return Object$.requireNonNullElseGet(properties.get(key), () -> {
-			VirtualEntry<K, V> entry = new VirtualEntry<>(this, properties, field, property, key);
-			properties.add(entry);
-			return entry;
-		});
-	}
 
 	@Override
 	default VirtualEntry<K, V> getEntry(K key) {
-		Properties<K, V> properties = Objects.requireNonNull(this.getProperties(), "properties()");
+		BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
 		Field field = this.getField(key);
 
 		if (field != null)
 			return this.getEntry(key, field);
 
-		return Object$.requireNonNullElseGet(properties.get(key), () -> {
-			VirtualEntry<K, V> entry = new VirtualEntry<>(this, properties, key);
-			properties.add(entry);
+		return Object$.requireNonNullElseGet(beanProperties.get(key), () -> {
+			VirtualEntry<K, V> entry = new VirtualEntry<>(this, this, beanProperties, key);
+			beanProperties.add(entry);
 			return entry;
 		});
 	}
+	@Override
+	default VirtualEntry<K, V> getEntry(K key, Field field) {
+		Objects.requireNonNull(field, "field");
+		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
+		BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
 
+		return Object$.requireNonNullElseGet(beanProperties.get(key), () -> {
+			VirtualEntry<K, V> entry = new VirtualEntry<>(this, this, beanProperties, field, property, key);
+			beanProperties.add(entry);
+			return entry;
+		});
+	}
 	@Override
 	default Field getField(K key) {
-		Properties<K, V> properties = Objects.requireNonNull(this.getProperties(), "properties()");
-		VirtualEntry<K, V> entry = properties.get(key);
+		BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
+		VirtualEntry<K, V> entry = beanProperties.get(key);
 
 		return entry == null ? Bean.super.getField(key) : entry.field;
 	}
-
-	@Override
-	Bean.Properties<K, V> getProperties();
 }
