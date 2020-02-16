@@ -55,18 +55,9 @@ public interface Bean<K, V> extends Map<K, V> {
 
 	@Override
 	default boolean containsValue(Object value) {
-		if (value == null) {
-			for (Map.Entry<K, V> entry : this.entrySet())
-				if (entry.getValue() == null)
-					return true;
-		} else {
-			int hashCode = value.hashCode();
-			V value1;
-			for (Map.Entry<K, V> entry : this.entrySet())
-				if ((value1 = entry.getValue()) != null && hashCode == value1.hashCode() && value.equals(value1))
-					return true;
-		}
-
+		for (Map.Entry<K, V> entry : this.entrySet())
+			if (Objects.equals(value, entry.getValue()))
+				return true;
 		return false;
 	}
 
@@ -201,22 +192,25 @@ public interface Bean<K, V> extends Map<K, V> {
 
 	@Override
 	default Set<Entry<K, V>> entrySet() {
-		return (Set<Map.Entry<K, V>>) (Object) this.getProperties();
+		return (Set<Map.Entry<K, V>>) (Object) this.getBeanProperties();
 	}
 
 	/**
-	 * Get a virtual entry as the key is the given key and the field is the given field.
+	 * A map of the property fields of this.
 	 *
-	 * @param key   the key for the targeted virtual entry
-	 * @param field the field holding the targeted virtual entry
-	 * @return a virtual entry for the given params.
-	 * @throws NullPointerException if the given field is null or the given field not annotated with {@link Property}
+	 * @return a map of property fields of this
 	 */
-	default VirtualEntry<K, V> getEntry(K key, Field field) {
-		Objects.requireNonNull(field, "field");
-		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Bean.Property.class)");
+	default BeanProperties<K, V> getBeanProperties() {
+		BeanProperties<K, V> beanProperties = new BeanProperties<>(this);
+		Set<K> keys = new HashSet<>(10);
 
-		return new VirtualEntry<>(this, field, property, key);
+		Property property;
+		K key;
+		for (Field field : Reflect$.getAllFields(this.getClass()))
+			if ((property = field.getAnnotation(Property.class)) != null && !keys.contains(key = this.getKey(field)))
+				beanProperties.add(new VirtualEntry<>(this, this, field, property, key));
+
+		return beanProperties;
 	}
 
 	/**
@@ -229,7 +223,6 @@ public interface Bean<K, V> extends Map<K, V> {
 		Field field = this.getField(key);
 		return field == null ? null : this.getEntry(key, field);
 	}
-
 	/**
 	 * Get a virtual entry as the field is the given field.
 	 *
@@ -241,6 +234,20 @@ public interface Bean<K, V> extends Map<K, V> {
 		Objects.requireNonNull(field, "field");
 		return this.getEntry(this.getKey(field), field);
 	}
+	/**
+	 * Get a virtual entry as the key is the given key and the field is the given field.
+	 *
+	 * @param key   the key for the targeted virtual entry
+	 * @param field the field holding the targeted virtual entry
+	 * @return a virtual entry for the given params.
+	 * @throws NullPointerException if the given field is null or the given field not annotated with {@link Property}
+	 */
+	default VirtualEntry<K, V> getEntry(K key, Field field) {
+		Objects.requireNonNull(field, "field");
+		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Bean.Property.class)");
+
+		return new VirtualEntry<>(this, this, field, property, key);
+	}
 
 	/**
 	 * Get a property-field for the passed key. Or null if not found.
@@ -249,18 +256,9 @@ public interface Bean<K, V> extends Map<K, V> {
 	 * @return a field that responsible for storing the value for the presented key
 	 */
 	default Field getField(K key) {
-		if (key == null) {
-			for (Field field : Reflect$.getAllFields(this.getClass()))
-				if (field.isAnnotationPresent(Property.class) && this.getKey(field) == null)
-					return field;
-		} else {
-			int hashCode = key.hashCode();
-			K key1;
-			for (Field field : Reflect$.getAllFields(this.getClass()))
-				if (field.isAnnotationPresent(Property.class) &&
-					(key1 = this.getKey(field)) != null && hashCode == key1.hashCode() && key.equals(key1))
-					return field;
-		}
+		for (Field field : Reflect$.getAllFields(this.getClass()))
+			if (field.isAnnotationPresent(Property.class) && Objects.equals(key, this.getKey(field)))
+				return field;
 		return null;
 	}
 
@@ -281,23 +279,6 @@ public interface Bean<K, V> extends Map<K, V> {
 				return (K) Value.util.construct(key);
 
 		return (K) field.getName();
-	}
-
-	/**
-	 * A map of the property fields of this.
-	 *
-	 * @return a map of property fields of this
-	 */
-	default Properties<K, V> getProperties() {
-		Properties<K, V> properties = new Properties<>(this);
-		Set<K> keys = new HashSet<>(10);
-
-		Property property;
-		for (Field field : Reflect$.getAllFields(this.getClass()))
-			if ((property = field.getAnnotation(Property.class)) != null)
-				properties.add(new VirtualEntry<>(this, field, property, this.getKey(field)));
-
-		return properties;
 	}
 
 	/**
@@ -410,7 +391,7 @@ public interface Bean<K, V> extends Map<K, V> {
 	/**
 	 * A properties (virtual entries) collection.
 	 */
-	class Properties<K, V> extends HashSet<VirtualEntry<K, V>> {
+	class BeanProperties<K, V> extends HashSet<VirtualEntry<K, V>> {
 		/**
 		 * The bean this object is responsible of.
 		 */
@@ -421,7 +402,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		 *
 		 * @param bean the bean of this
 		 */
-		public Properties(Bean<K, V> bean) {
+		public BeanProperties(Bean<K, V> bean) {
 			this.bean = bean;
 		}
 
@@ -431,7 +412,7 @@ public interface Bean<K, V> extends Map<K, V> {
 				/**
 				 * The iterator of the entry set.
 				 */
-				private Iterator<VirtualEntry<K, V>> iterator = Properties.super.iterator();
+				private Iterator<VirtualEntry<K, V>> iterator = BeanProperties.super.iterator();
 				/**
 				 * Last key given by {@link #next()}.
 				 */
@@ -453,7 +434,7 @@ public interface Bean<K, V> extends Map<K, V> {
 				public void remove() {
 					if (this.lastKey == null)
 						throw new IllegalStateException();
-					Properties.this.bean.remove(this.lastKey);
+					BeanProperties.this.bean.remove(this.lastKey);
 				}
 			};
 		}
@@ -508,16 +489,20 @@ public interface Bean<K, V> extends Map<K, V> {
 		/**
 		 * The configurations of the field of this.
 		 *
-		 * @apiNote not null when {@link #properties} is null
+		 * @apiNote not null when {@link #beanProperties} is null
 		 */
 		final protected Property config;
 		/**
 		 * The field where this entry is linked to in the {@link Bean} this entry belongs to.
 		 *
 		 * @apiNote not null when {@link #config} is not null
-		 * @apiNote not null when {@link #properties} is null
+		 * @apiNote not null when {@link #beanProperties} is null
 		 */
 		final protected Field field;
+		/**
+		 * the instance to do the reflection part at.
+		 */
+		final protected Object instance;
 		/**
 		 * The key represented by this entry.
 		 */
@@ -528,7 +513,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @apiNote not null when {@link #field} is null
 		 * @apiNote not null when {@link #config} is null
 		 */
-		final protected Properties<K, V> properties;
+		final protected BeanProperties<K, V> beanProperties;
 		/**
 		 * The value represented by this entry.
 		 */
@@ -537,38 +522,44 @@ public interface Bean<K, V> extends Map<K, V> {
 		/**
 		 * Initialize this.
 		 *
+		 * @param instance   the instance to do the reflection part at
 		 * @param bean       the object that this entry belongs to
-		 * @param properties the map where extra properties get stored at
+		 * @param beanProperties the map where extra properties get stored at
 		 * @param field      the field where this entry is linked to (null if there is no such field)
 		 * @param config     the property instance (not-null if the field not null)
 		 * @param key        the key represented by this entry
-		 * @throws NullPointerException if the given 'bean' or 'properties' or 'field' or 'property' is null
+		 * @throws NullPointerException if the given 'instance' or 'bean' or 'properties' or 'field' or 'property' is null
 		 */
-		protected VirtualEntry(Bean<K, V> bean, Properties<K, V> properties, Field field, Property config, K key) {
+		protected VirtualEntry(Object instance, Bean<K, V> bean, BeanProperties<K, V> beanProperties, Field field, Property config, K key) {
+			Objects.requireNonNull(instance, "instance");
 			Objects.requireNonNull(bean, "bean");
-			Objects.requireNonNull(properties, "properties");
+			Objects.requireNonNull(beanProperties, "properties");
 			Objects.requireNonNull(field, "field");
 			Objects.requireNonNull(config, "config");
+			this.instance = instance;
 			this.bean = bean;
 			this.key = key;
 			this.field = field;
-			this.properties = properties;
+			this.beanProperties = beanProperties;
 			this.config = config;
 		}
 
 		/**
 		 * Initialize this.
 		 *
+		 * @param instance   the instance to do the reflection part at
 		 * @param bean       the object that this entry belongs to
-		 * @param properties the map where extra properties get stored at
+		 * @param beanProperties the map where extra properties get stored at
 		 * @param key        the key represented by this entry
-		 * @throws NullPointerException if the given 'bean' or 'properties' is null
+		 * @throws NullPointerException if the given 'instance' or 'bean' or 'properties' is null
 		 */
-		protected VirtualEntry(Bean<K, V> bean, Properties<K, V> properties, K key) {
+		protected VirtualEntry(Object instance, Bean<K, V> bean, BeanProperties<K, V> beanProperties, K key) {
+			Objects.requireNonNull(instance, "instance");
 			Objects.requireNonNull(bean, "bean");
-			Objects.requireNonNull(properties, "properties");
+			Objects.requireNonNull(beanProperties, "properties");
+			this.instance = instance;
 			this.bean = bean;
-			this.properties = properties;
+			this.beanProperties = beanProperties;
 			this.key = key;
 			this.field = null;
 			this.config = null;
@@ -577,38 +568,44 @@ public interface Bean<K, V> extends Map<K, V> {
 		/**
 		 * Initialize this.
 		 *
-		 * @param bean   the object that this entry belongs to
-		 * @param field  the field where this entry is linked to (null if there is no such field)
-		 * @param config the property instance (not-null if the field not null)
-		 * @param key    the key represented by this entry
-		 * @throws NullPointerException if the given 'bean' or 'field' or 'property' is null
+		 * @param instance the instance to do the reflection part at
+		 * @param bean     the object that this entry belongs to
+		 * @param field    the field where this entry is linked to (null if there is no such field)
+		 * @param config   the property instance (not-null if the field not null)
+		 * @param key      the key represented by this entry
+		 * @throws NullPointerException if the given 'instance' or 'bean' or 'field' or 'property' is null
 		 */
-		protected VirtualEntry(Bean<K, V> bean, Field field, Property config, K key) {
+		protected VirtualEntry(Object instance, Bean<K, V> bean, Field field, Property config, K key) {
+			Objects.requireNonNull(instance, "instance");
 			Objects.requireNonNull(bean, "bean");
 			Objects.requireNonNull(field, "field");
 			Objects.requireNonNull(config, "config");
+			this.instance = instance;
 			this.bean = bean;
 			this.field = field;
 			this.config = config;
 			this.key = key;
-			this.properties = null;
+			this.beanProperties = null;
 		}
 
 		/**
 		 * Initialize this.
 		 *
+		 * @param instance   the instance to do the reflection part at
 		 * @param bean       the object that this entry belongs to
-		 * @param properties the map where extra properties get stored at
+		 * @param beanProperties the map where extra properties get stored at
 		 * @param config     the property instance (not-null if the field not null)
 		 * @param key        the key represented by this entry
-		 * @throws NullPointerException if the given 'bean' or 'properties' or 'property' is null
+		 * @throws NullPointerException if the given 'instance' or 'bean' or 'properties' or 'property' is null
 		 */
-		protected VirtualEntry(Bean<K, V> bean, Properties<K, V> properties, Property config, K key) {
+		protected VirtualEntry(Object instance, Bean<K, V> bean, BeanProperties<K, V> beanProperties, Property config, K key) {
+			Objects.requireNonNull(instance, "instance");
 			Objects.requireNonNull(bean, "bean");
-			Objects.requireNonNull(properties, "properties");
+			Objects.requireNonNull(beanProperties, "properties");
 			Objects.requireNonNull(config, "config");
+			this.instance = instance;
 			this.bean = bean;
-			this.properties = properties;
+			this.beanProperties = beanProperties;
 			this.config = config;
 			this.key = key;
 			this.field = null;
@@ -627,7 +624,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		 */
 		@Override
 		public V getValue() {
-			if (this.properties != null && !this.properties.contains(this))
+			if (this.beanProperties != null && !this.beanProperties.contains(this))
 				throw new IllegalStateException("Invalid entry");
 			V value = this.getValue0();
 
@@ -719,8 +716,8 @@ public interface Bean<K, V> extends Map<K, V> {
 		}
 
 		/**
-		 * Remove this entry from the {@link Bean} where it's belongs to. By removing it from the {@link #bean#getProperties()} in the linked object.
-		 * Or set the {@link #value} to null (if this entry linked to a field).
+		 * Remove this entry from the {@link Bean} where it's belongs to. By removing it from the {@link #bean#getBeanProperties()} in the linked
+		 * object. Or set the {@link #value} to null (if this entry linked to a field).
 		 *
 		 * @return the previous value associated with this.
 		 * @apiNote if this linked to a field. And field config annotation set to {@link Property#NULL} then the {@link #put(Object, Object)} on the
@@ -744,7 +741,7 @@ public interface Bean<K, V> extends Map<K, V> {
 				}
 
 			V value = this.setValue(null);
-			this.properties.remove(this.key);
+			this.beanProperties.remove(this.key);
 			return value;
 		}
 
@@ -758,7 +755,7 @@ public interface Bean<K, V> extends Map<K, V> {
 				return this.value;
 			else try {
 				this.field.setAccessible(true);
-				return (V) this.field.get(this.bean);
+				return (V) this.field.get(this.instance);
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
@@ -769,18 +766,18 @@ public interface Bean<K, V> extends Map<K, V> {
 		 *
 		 * @param value to be set
 		 * @return the previous value
-		 * @implSpec add this entry to {@link #properties}
+		 * @implSpec add this entry to {@link #beanProperties}
 		 */
 		protected V setValue0(V value) {
 			V old = this.getValue0();
 
-			if (this.properties != null && this.properties.get(this.key) != this)
-				this.properties.add(this);
+			if (this.beanProperties != null && this.beanProperties.get(this.key) != this)
+				this.beanProperties.add(this);
 			if (this.field == null)
 				this.value = value;
 			else try {
 				this.field.setAccessible(true);
-				this.field.set(this.bean, value);
+				this.field.set(this.instance, value);
 			} catch (IllegalAccessException e) {
 				throw new RuntimeException(e);
 			}
