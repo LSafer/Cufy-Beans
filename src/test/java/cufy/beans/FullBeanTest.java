@@ -11,9 +11,39 @@
 
 package cufy.beans;
 
+import cufy.lang.Value;
+import org.cufy.lang.JSONConverter;
+import org.junit.Assert;
+import org.junit.Test;
+
+import static cufy.beans.Bean.Property.CONVERT;
+
 @SuppressWarnings("JavaDoc")
 public class FullBeanTest {
-	public void test() {
-		//TODO
+	@Test
+	public void forInstance_struct_put_get_size() {
+		Object object = new Object() {
+			@Bean.Property(key = @Value(value = "false", type = Boolean.class, converter = JSONConverter.class), onTypeMismatch = CONVERT, converter = JSONConverter.class)
+			private Integer integer = 45;
+		};
+		Bean<Object, Object> bean = FullBean.forInstance(object);
+
+		bean.put("A", "B");
+		bean.put("A", "R");
+
+		//state
+		Assert.assertEquals("Wrong size calc", 2, bean.size());
+
+		bean.put(false, 67);
+
+		//key = false
+		Assert.assertNotNull("Field value can't be reached", bean.get(false));
+		Assert.assertNotEquals("Field value not update", 45, bean.get(false));
+		Assert.assertEquals("Field value stored wrongly", 67, bean.get(false));
+
+		//key = "A"
+		Assert.assertNotNull("Non-field value can't be reached or not stored", bean.get("A"));
+		Assert.assertNotEquals("Non-field value not updated", "B", bean.get("A"));
+		Assert.assertEquals("Non-field value stored wrongly", "R", bean.get("A"));
 	}
 }
