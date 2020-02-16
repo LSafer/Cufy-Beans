@@ -32,10 +32,51 @@ import java.util.*;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 19 release (26-Jan-2020)
+ * @version 20 release (16-Feb-2020)
  * @since 11-Jun-19
  */
 public interface Bean<K, V> extends Map<K, V> {
+	/**
+	 * Get a bean for the instance give. The given bean will work as a remote for the given instance. The bean will work as if the given instance is a
+	 * bean and returned bean is the actual instance.
+	 *
+	 * @param instance to get a bean for
+	 * @param <K>      the type of keys in the returned bean
+	 * @param <V>      the type of values in the returned bean
+	 * @return a bean remote for the given instance
+	 */
+	static <K, V> Bean<K, V> forInstance(Object instance) {
+		return new Bean<K, V>() {
+			@Override
+			public BeanProperties<K, V> getBeanProperties() {
+				BeanProperties<K, V> beanProperties = new BeanProperties<>(this);
+				Set<K> keys = new HashSet<>(10);
+
+				Property property;
+				K key;
+				for (Field field : Reflect$.getAllFields(instance.getClass()))
+					if ((property = field.getAnnotation(Property.class)) != null && !keys.contains(key = this.getKey(field)))
+						beanProperties.add(new VirtualEntry<>(instance, this, field, property, key));
+
+				return beanProperties;
+			}
+			@Override
+			public VirtualEntry<K, V> getEntry(K key, Field field) {
+				Objects.requireNonNull(field, "field");
+				Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Bean.Property.class)");
+
+				return new VirtualEntry<>(instance, this, field, property, key);
+			}
+			@Override
+			public Field getField(K key) {
+				for (Field field : Reflect$.getAllFields(instance.getClass()))
+					if (field.isAnnotationPresent(Property.class) && Objects.equals(key, this.getKey(field)))
+						return field;
+				return null;
+			}
+		};
+	}
+
 	@Override
 	default int size() {
 		//Stolen from java.util.AbstractMap.class 😛
