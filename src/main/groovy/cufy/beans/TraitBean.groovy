@@ -9,24 +9,39 @@
  */
 package cufy.beans
 
+import cufy.util.Reflect$
+
+import java.lang.reflect.Field
+
 /**
  * A trait version of the interface {@link Bean}. Adding more reliability on the implementation.
  *
  * @param <K> the type of the keys on this map
  * @param <V> the type of the values on this map
  * @since 25-Nov-2019
- * @version 1 release (04-Dec-2019)
+ * @version 2 release (16-Feb-2020)
  * @author LSaferSE
  */
 trait TraitBean<K, V> implements FullBean<K, V>, Serializable {
 	/**
 	 * The additional properties map of this.
 	 */
-	private transient Properties properties = new Properties<>(this)
+	private transient BeanProperties beanProperties
 
 	@Override
-	Properties getProperties() {
-		this.properties
+	BeanProperties getBeanProperties() {
+		if (this.beanProperties == null) {
+			this.beanProperties = new BeanProperties<>(this)
+			Set<K> keys = new HashSet<>(10)
+
+			Property property
+			Object key
+			for (Field field : Reflect$.getAllFields(this.getClass()))
+				if ((property = field.getAnnotation(Property.class)) != null && !keys.contains(key = this.getKey(field)))
+					this.beanProperties.add(new VirtualEntry<>(this, this, field, property, key))
+		}
+
+		return this.beanProperties
 	}
 
 	@Override
@@ -75,7 +90,7 @@ trait TraitBean<K, V> implements FullBean<K, V>, Serializable {
 	 * @throws IOException if an I/O error occurs
 	 */
 	private void writeObject(ObjectOutputStream stream) throws IOException {
-		Properties<K, V> properties = this.getProperties()
+		BeanProperties<K, V> properties = this.getBeanProperties()
 		stream.writeInt(properties.size())
 		for (VirtualEntry<K, V> entry : properties) {
 			stream.writeObject(entry.getKey())

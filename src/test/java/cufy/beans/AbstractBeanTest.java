@@ -18,8 +18,7 @@ import static cufy.beans.Bean.Property.CONVERT;
 
 @SuppressWarnings({"JavaDoc"})
 public class AbstractBeanTest {
-	@SuppressWarnings("OverwrittenKey")
-	@Test(timeout = 500)
+	@Test
 	public void struct_put_get_size() {
 		AbstractBean<Object, Object> bean = new AbstractBean<Object, Object>() {
 			@Property(key = @Value(value = "false", type = Boolean.class, converter = JSONConverter.class), onTypeMismatch = CONVERT, converter = JSONConverter.class)
@@ -28,10 +27,11 @@ public class AbstractBeanTest {
 
 		bean.put("A", "B");
 		bean.put("A", "R");
-		bean.put(false, "67");
 
 		//state
 		Assert.assertEquals("Wrong size calc", 2, bean.size());
+
+		bean.put(false, 67);
 
 		//key = false
 		Assert.assertNotNull("Field value can't be reached", bean.get(false));

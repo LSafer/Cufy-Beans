@@ -23,7 +23,7 @@ import java.util.Map;
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSafer
- * @version 16 release (07-Dec-2019)
+ * @version 17 release (16-Feb-2020)
  * @since 11 Jun 2019
  **/
 public abstract class AbstractBean<K, V> implements FullBean<K, V>, Serializable {
@@ -32,11 +32,15 @@ public abstract class AbstractBean<K, V> implements FullBean<K, V>, Serializable
 	 *
 	 * Implementation note: don't remove directly from it!.
 	 */
-	private transient Properties<K, V> properties = new Properties<>(this);
+	private transient BeanProperties<K, V> beanProperties;
 
 	@Override
-	public Properties<K, V> getProperties() {
-		return this.properties;
+	public BeanProperties<K, V> getBeanProperties() {
+		if (this.beanProperties == null) {
+			this.beanProperties = FullBean.super.getBeanProperties();
+		}
+
+		return this.beanProperties;
 	}
 
 	@Override
@@ -84,9 +88,9 @@ public abstract class AbstractBean<K, V> implements FullBean<K, V>, Serializable
 	 * @throws IOException if an I/O error occurs
 	 */
 	private void writeObject(ObjectOutputStream stream) throws IOException {
-		Properties<K, V> properties = this.getProperties();
-		stream.writeInt(properties.size());
-		for (VirtualEntry<K, V> entry : properties) {
+		BeanProperties<K, V> beanProperties = this.getBeanProperties();
+		stream.writeInt(beanProperties.size());
+		for (VirtualEntry<K, V> entry : beanProperties) {
 			stream.writeObject(entry.getKey());
 			stream.writeObject(entry.getValue());
 		}
