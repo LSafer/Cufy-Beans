@@ -37,8 +37,10 @@ public interface FullBean<K, V> extends Bean<K, V> {
 	 * @param <K>      the type of keys in the returned bean
 	 * @param <V>      the type of values in the returned bean
 	 * @return a bean remote for the given instance
+	 * @throws NullPointerException if the given instance is null
 	 */
 	static <K, V> FullBean<K, V> forInstance(Object instance) {
+		Objects.requireNonNull(instance, "instance");
 		return new FullBean<K, V>() {
 			/**
 			 * The properties set for this full bean.

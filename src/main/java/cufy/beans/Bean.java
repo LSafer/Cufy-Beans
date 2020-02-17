@@ -44,8 +44,10 @@ public interface Bean<K, V> extends Map<K, V> {
 	 * @param <K>      the type of keys in the returned bean
 	 * @param <V>      the type of values in the returned bean
 	 * @return a bean remote for the given instance
+	 * @throws NullPointerException if the given instance is null
 	 */
 	static <K, V> Bean<K, V> forInstance(Object instance) {
+		Objects.requireNonNull(instance, "instance");
 		return new Bean<K, V>() {
 			@Override
 			public BeanProperties<K, V> getBeanProperties() {
@@ -528,6 +530,13 @@ public interface Bean<K, V> extends Map<K, V> {
 		 */
 		final protected Bean<K, V> bean;
 		/**
+		 * The map where extra properties get stored at.
+		 *
+		 * @apiNote not null when {@link #field} is null
+		 * @apiNote not null when {@link #config} is null
+		 */
+		final protected BeanProperties<K, V> beanProperties;
+		/**
 		 * The configurations of the field of this.
 		 *
 		 * @apiNote not null when {@link #beanProperties} is null
@@ -549,13 +558,6 @@ public interface Bean<K, V> extends Map<K, V> {
 		 */
 		final protected K key;
 		/**
-		 * The map where extra properties get stored at.
-		 *
-		 * @apiNote not null when {@link #field} is null
-		 * @apiNote not null when {@link #config} is null
-		 */
-		final protected BeanProperties<K, V> beanProperties;
-		/**
 		 * The value represented by this entry.
 		 */
 		protected V value;
@@ -563,12 +565,12 @@ public interface Bean<K, V> extends Map<K, V> {
 		/**
 		 * Initialize this.
 		 *
-		 * @param instance   the instance to do the reflection part at
-		 * @param bean       the object that this entry belongs to
+		 * @param instance       the instance to do the reflection part at
+		 * @param bean           the object that this entry belongs to
 		 * @param beanProperties the map where extra properties get stored at
-		 * @param field      the field where this entry is linked to (null if there is no such field)
-		 * @param config     the property instance (not-null if the field not null)
-		 * @param key        the key represented by this entry
+		 * @param field          the field where this entry is linked to (null if there is no such field)
+		 * @param config         the property instance (not-null if the field not null)
+		 * @param key            the key represented by this entry
 		 * @throws NullPointerException if the given 'instance' or 'bean' or 'properties' or 'field' or 'property' is null
 		 */
 		protected VirtualEntry(Object instance, Bean<K, V> bean, BeanProperties<K, V> beanProperties, Field field, Property config, K key) {
@@ -588,10 +590,10 @@ public interface Bean<K, V> extends Map<K, V> {
 		/**
 		 * Initialize this.
 		 *
-		 * @param instance   the instance to do the reflection part at
-		 * @param bean       the object that this entry belongs to
+		 * @param instance       the instance to do the reflection part at
+		 * @param bean           the object that this entry belongs to
 		 * @param beanProperties the map where extra properties get stored at
-		 * @param key        the key represented by this entry
+		 * @param key            the key represented by this entry
 		 * @throws NullPointerException if the given 'instance' or 'bean' or 'properties' is null
 		 */
 		protected VirtualEntry(Object instance, Bean<K, V> bean, BeanProperties<K, V> beanProperties, K key) {
@@ -632,11 +634,11 @@ public interface Bean<K, V> extends Map<K, V> {
 		/**
 		 * Initialize this.
 		 *
-		 * @param instance   the instance to do the reflection part at
-		 * @param bean       the object that this entry belongs to
+		 * @param instance       the instance to do the reflection part at
+		 * @param bean           the object that this entry belongs to
 		 * @param beanProperties the map where extra properties get stored at
-		 * @param config     the property instance (not-null if the field not null)
-		 * @param key        the key represented by this entry
+		 * @param config         the property instance (not-null if the field not null)
+		 * @param key            the key represented by this entry
 		 * @throws NullPointerException if the given 'instance' or 'bean' or 'properties' or 'property' is null
 		 */
 		protected VirtualEntry(Object instance, Bean<K, V> bean, BeanProperties<K, V> beanProperties, Property config, K key) {
