@@ -69,11 +69,8 @@ public interface FullBean<K, V> extends Bean<K, V> {
 				if (field != null)
 					return this.getEntry(key, field);
 
-				return Object$.requireNonNullElseGet(beanProperties.get(key), () -> {
-					VirtualEntry<K, V> entry = new VirtualEntry<>(instance, this, beanProperties, key);
-					beanProperties.add(entry);
-					return entry;
-				});
+				return Object$.requireNonNullElseGet(beanProperties.get(key),
+						() -> new VirtualEntry<>(instance, this, beanProperties, key));
 			}
 			@Override
 			public VirtualEntry<K, V> getEntry(K key, Field field) {
@@ -81,11 +78,8 @@ public interface FullBean<K, V> extends Bean<K, V> {
 				Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
 				BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
 
-				return Object$.requireNonNullElseGet(beanProperties.get(key), () -> {
-					VirtualEntry<K, V> entry = new VirtualEntry<>(instance, this, beanProperties, field, property, key);
-					beanProperties.add(entry);
-					return entry;
-				});
+				return Object$.requireNonNullElseGet(beanProperties.get(key),
+						() -> new VirtualEntry<>(instance, this, beanProperties, field, property, key));
 			}
 			@Override
 			public Field getField(K key) {
@@ -111,11 +105,8 @@ public interface FullBean<K, V> extends Bean<K, V> {
 		if (field != null)
 			return this.getEntry(key, field);
 
-		return Object$.requireNonNullElseGet(beanProperties.get(key), () -> {
-			VirtualEntry<K, V> entry = new VirtualEntry<>(this, this, beanProperties, key);
-			beanProperties.add(entry);
-			return entry;
-		});
+		return Object$.requireNonNullElseGet(beanProperties.get(key),
+				() -> new VirtualEntry<>(this, this, beanProperties, key));
 	}
 	@Override
 	default VirtualEntry<K, V> getEntry(K key, Field field) {
@@ -123,11 +114,8 @@ public interface FullBean<K, V> extends Bean<K, V> {
 		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
 		BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
 
-		return Object$.requireNonNullElseGet(beanProperties.get(key), () -> {
-			VirtualEntry<K, V> entry = new VirtualEntry<>(this, this, beanProperties, field, property, key);
-			beanProperties.add(entry);
-			return entry;
-		});
+		return Object$.requireNonNullElseGet(beanProperties.get(key),
+				() -> new VirtualEntry<>(this, this, beanProperties, field, property, key));
 	}
 	@Override
 	default Field getField(K key) {

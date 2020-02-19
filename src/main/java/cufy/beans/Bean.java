@@ -93,7 +93,7 @@ public interface Bean<K, V> extends Map<K, V> {
 
 	@Override
 	default boolean containsKey(Object key) {
-		return this.getEntry((K) key) != null;
+		return this.getEntry((K) key).exist();
 	}
 
 	@Override
@@ -695,7 +695,6 @@ public interface Bean<K, V> extends Map<K, V> {
 		 * @throws IllegalArgumentException if the given value isn't instance of the {@link #getType() type} of this
 		 * @apiNote when the value get casted this method will call {@link #put} on the {@link Bean} as a notification that the value has changed
 		 */
-		@SuppressWarnings("OverlyComplexMethod")
 		@Override
 		public V setValue(V value) {
 			Class<V> type;
@@ -738,6 +737,15 @@ public interface Bean<K, V> extends Map<K, V> {
 		@Override
 		public String toString() {
 			return this.key + "=" + this.getValue();
+		}
+
+		/**
+		 * Return true if this entry actually exist or not.
+		 *
+		 * @return true if this entry actually exist
+		 */
+		public boolean exist() {
+			return this.field != null || this.beanProperties.contains(this);
 		}
 
 		/**
@@ -784,7 +792,7 @@ public interface Bean<K, V> extends Map<K, V> {
 				}
 
 			V value = this.setValue(null);
-			this.beanProperties.remove(this.key);
+			this.beanProperties.remove(this);
 			return value;
 		}
 

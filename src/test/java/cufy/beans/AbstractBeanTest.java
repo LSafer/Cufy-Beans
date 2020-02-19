@@ -27,6 +27,10 @@ public class AbstractBeanTest {
 
 		bean.put("A", "B");
 		bean.put("A", "R");
+		bean.put("Y", 7);
+		bean.remove("Y");
+
+		Assert.assertFalse("Remove does not work!", bean.containsKey("Y"));
 
 		//state
 		Assert.assertEquals("Wrong size calc", 2, bean.size());
