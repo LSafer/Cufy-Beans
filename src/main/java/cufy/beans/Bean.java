@@ -749,6 +749,33 @@ public interface Bean<K, V> extends Map<K, V> {
 		}
 
 		/**
+		 * Get the bean of this entry.
+		 *
+		 * @return the bean of this entry
+		 */
+		public Bean<K, V> getBean() {
+			return this.bean;
+		}
+
+		/**
+		 * Get the field of this entry.
+		 *
+		 * @return the field of this entry
+		 */
+		public Field getField() {
+			return this.field;
+		}
+
+		/**
+		 * Get the targeted instance.
+		 *
+		 * @return the targeted instance
+		 */
+		public Object getInstance() {
+			return this.instance;
+		}
+
+		/**
 		 * Get the type of the objects allowed to be set to this entry.
 		 *
 		 * @return the type of the value allowed on this entry
