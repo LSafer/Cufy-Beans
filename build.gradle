@@ -11,13 +11,13 @@ repositories {
 
 dependencies {
 	compileOnly 'org.codehaus.groovy:groovy-all:3.0.0'
-	compileOnly 'com.github.cufyorg:util:0.0.7'
-	compileOnly 'com.github.cufyorg:base:0.0.7'
+	compileOnly 'com.github.cufyorg:util:0.0.8'
+	compileOnly 'com.github.cufyorg:base:0.0.8'
 
 	testImplementation 'org.codehaus.groovy:groovy-all:3.0.0'
-	testImplementation 'com.github.cufyorg:util:0.0.7'
-	testImplementation 'com.github.cufyorg:base:0.0.7'
-	testImplementation 'com.github.cufyorg:json:0.0.7'
+	testImplementation 'com.github.cufyorg:util:0.0.8'
+	testImplementation 'com.github.cufyorg:base:0.0.8'
+	testImplementation 'com.github.cufyorg:json:0.0.8'
 	testImplementation 'junit:junit:4.11'
 }
 
