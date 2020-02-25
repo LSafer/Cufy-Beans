@@ -107,7 +107,7 @@ public interface Bean<K, V> extends Map<K, V> {
 	@Override
 	default V get(Object key) {
 		VirtualEntry<K, V> entry = this.getEntry((K) key);
-		return entry == null ? null : entry.getValue();
+		return entry == null || !entry.exist() ? null : entry.getValue();
 	}
 
 	@Override

@@ -103,6 +103,14 @@ public class BeanTest {
 		}
 	}
 
+	@Test
+	public void getNotExist() {
+		Bean bean = new Bean() {
+		};
+
+		Assert.assertNull("Not equals", bean.get(null));
+	}
+
 	@Test()
 	public void struct_put_get_size() {
 		Bean<Object, Object> bean = new Bean<Object, Object>() {
