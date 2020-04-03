@@ -1,5 +1,4 @@
 apply plugin: 'java-library'
-apply plugin: 'groovy'
 
 repositories {
 	jcenter()
@@ -10,16 +9,13 @@ repositories {
 }
 
 dependencies {
-	compileOnly 'org.codehaus.groovy:groovy-all:3.0.0'
-	compileOnly 'com.github.cufyorg:util:0.0.8'
-	compileOnly 'com.github.cufyorg:base:0.0.8'
+	compileOnly 'com.github.cufyorg:util:0.1.0-beta2'
+	compileOnly 'com.github.cufyorg:base:0.1.0-beta4'
 
-	File e
-
-	testImplementation 'org.codehaus.groovy:groovy-all:3.0.0'
-	testImplementation 'com.github.cufyorg:util:0.0.8'
-	testImplementation 'com.github.cufyorg:base:0.0.8'
-	testImplementation 'com.github.cufyorg:json:0.0.8'
+	testImplementation 'com.github.cufyorg:util:0.1.0-beta2'
+	testImplementation 'com.github.cufyorg:base:0.1.0-beta4'
+	testImplementation 'com.github.cufyorg:json:0.1.0-beta2'
+	testImplementation 'com.github.cufyorg:text:0.1.0-beta0'
 	testImplementation 'junit:junit:4.11'
 }
 
