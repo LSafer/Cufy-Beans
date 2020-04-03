@@ -14,8 +14,8 @@ dependencies {
 
 	testImplementation 'com.github.cufyorg:util:0.1.0-beta2'
 	testImplementation 'com.github.cufyorg:base:0.1.0-beta4'
-	testImplementation 'com.github.cufyorg:json:0.1.0-beta2'
 	testImplementation 'com.github.cufyorg:text:0.1.0-beta0'
+	testImplementation 'com.github.cufyorg:json:0.1.0-beta2'
 	testImplementation 'junit:junit:4.11'
 }
 
