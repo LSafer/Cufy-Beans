@@ -8,42 +8,74 @@
  *   By adding a new header (at the bottom of this header)
  *   with the word "Editor" on top of it.
  */
-
 package cufy.beans;
 
-import cufy.lang.Value;
-import org.cufy.lang.JSONConverter;
-import org.junit.Assert;
 import org.junit.Test;
-
-import static cufy.beans.Bean.Property.CONVERT;
 
 @SuppressWarnings("JavaDoc")
 public class FullBeanTest {
 	@Test
-	public void forInstance_struct_put_get_size() {
-		Object object = new Object() {
-			@Bean.Property(key = @Value(value = "false", type = Boolean.class, converter = JSONConverter.class), onTypeMismatch = CONVERT, converter = JSONConverter.class)
-			private Integer integer = 45;
-		};
-		Bean<Object, Object> bean = FullBean.forInstance(object);
+	public void clear() {
+		//TODO
+	}
 
-		bean.put("A", "B");
-		bean.put("A", "R");
+	@Test
+	public void containsKey() {
+		//TODO
+	}
 
-		//state
-		Assert.assertEquals("Wrong size calc", 2, bean.size());
+	@Test
+	public void containsValue() {
+		//TODO
+	}
 
-		bean.put(false, 67);
+	@Test
+	public void entrySet() {
+		//TODO
+	}
 
-		//key = false
-		Assert.assertNotNull("Field value can't be reached", bean.get(false));
-		Assert.assertNotEquals("Field value not update", 45, bean.get(false));
-		Assert.assertEquals("Field value stored wrongly", 67, bean.get(false));
+	@Test
+	public void forInstance() {
+		//TODO
+	}
 
-		//key = "A"
-		Assert.assertNotNull("Non-field value can't be reached or not stored", bean.get("A"));
-		Assert.assertNotEquals("Non-field value not updated", "B", bean.get("A"));
-		Assert.assertEquals("Non-field value stored wrongly", "R", bean.get("A"));
+	@Test
+	public void get() {
+		//TODO
+	}
+
+	@Test
+	public void isEmpty() {
+		//TODO
+	}
+
+	@Test
+	public void keySet() {
+		//TODO
+	}
+
+	@Test
+	public void put() {
+		//TODO
+	}
+
+	@Test
+	public void putAll() {
+		//TODO
+	}
+
+	@Test
+	public void remove() {
+		//TODO
+	}
+
+	@Test
+	public void size() {
+		//TODO
+	}
+
+	@Test
+	public void values() {
+		//TODO
 	}
 }

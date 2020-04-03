@@ -14,33 +14,56 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
- * An abstract to implement needed methods in the interfaces {@link Bean} and {@link java.io.Serializable}.
+ * An abstraction for the interface {@link Bean}.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSafer
- * @version 17 release (16-Feb-2020)
+ * @version 18 release (03-Apr-2020)
  * @since 11 Jun 2019
  **/
 public abstract class AbstractBean<K, V> implements FullBean<K, V>, Serializable {
 	/**
-	 * The secondary container.
-	 *
-	 * Implementation note: don't remove directly from it!.
+	 * A set of the entries of this.
 	 */
-	private transient BeanProperties<K, V> beanProperties;
+	protected transient Set<Map.Entry<K, V>> entrySet;
+	/**
+	 * A set of the keys in this.
+	 */
+	protected transient Set<K> keySet;
+	/**
+	 * A set of the values in this.
+	 */
+	protected transient Collection<V> values;
 
 	@Override
-	public BeanProperties<K, V> getBeanProperties() {
-		if (this.beanProperties == null) {
-			this.beanProperties = FullBean.super.getBeanProperties();
+	public Set<K> keySet() {
+		if (this.keySet == null) {
+			this.keySet = FullBean.super.keySet();
 		}
 
-		return this.beanProperties;
+		return this.keySet;
+	}
+
+	@Override
+	public Collection<V> values() {
+		if (this.values == null) {
+			this.values = FullBean.super.values();
+		}
+
+		return this.values;
+	}
+
+	@Override
+	public Set<Map.Entry<K, V>> entrySet() {
+		if (this.entrySet == null) {
+			this.entrySet = FullBean.super.entrySet();
+		}
+
+		return this.entrySet;
 	}
 
 	@Override
@@ -70,27 +93,33 @@ public abstract class AbstractBean<K, V> implements FullBean<K, V>, Serializable
 	}
 
 	/**
-	 * Backdoor initializing method, or custom deserialization method.
+	 * Deserialization method.
 	 *
 	 * @param stream to initialize this using
 	 * @throws ClassNotFoundException if the class of a serialized object could not be found.
 	 * @throws IOException            if an I/O error occurs.
+	 * @throws NullPointerException   if the given 'stream' is null
 	 */
 	private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
-		for (int length = stream.readInt(), i = 0; i < length; i++)
+		Objects.requireNonNull(stream, "stream");
+
+		int length = stream.readInt();
+		for (int i = 0; i < length; i++)
 			this.put((K) stream.readObject(), (V) stream.readObject());
 	}
 
 	/**
-	 * Custom JSObject serialization method.
+	 * Serialization method.
 	 *
 	 * @param stream to use to serialize this
-	 * @throws IOException if an I/O error occurs
+	 * @throws IOException          if an I/O error occurs
+	 * @throws NullPointerException if the given 'stream' is null
 	 */
 	private void writeObject(ObjectOutputStream stream) throws IOException {
-		BeanProperties<K, V> beanProperties = this.getBeanProperties();
-		stream.writeInt(beanProperties.size());
-		for (VirtualEntry<K, V> entry : beanProperties) {
+		Objects.requireNonNull(stream, "stream");
+
+		stream.writeInt(this.size());
+		for (Entry<K, V> entry : this.entrySet()) {
 			stream.writeObject(entry.getKey());
 			stream.writeObject(entry.getValue());
 		}

@@ -4,124 +4,141 @@
  *
  * -You can edit this file (except the header).
  * -If you have change anything in this file. You
- *   shall mention that this file has been edited.
- *   By adding a new header (at the bottom of this header)
- *   with the word "Editor" on top of it.
+ *  shall mention that this file has been edited.
+ *  By adding a new header (at the bottom of this header)
+ *  with the word "Editor" on top of it.
  */
-
 package cufy.beans;
 
-import cufy.util.Object$;
-import cufy.util.Reflect$;
-
-import java.lang.reflect.Field;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
- * An implementation ready for the interface {@link Bean}. Increases teh ability to store un-fielded properties.
+ * A bean designed to have a final entrySet. Since the original {@link Bean} can't have a final entrySet.
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
  * @author LSaferSE
- * @version 2 release (16-Feb-2020)
+ * @version 3 release (02-Apr-2020)
  * @since 09-Dec-2019
  */
 public interface FullBean<K, V> extends Bean<K, V> {
+	@Override
+	default int size() {
+		return this.entrySet().size();
+	}
+
+	@Override
+	default boolean isEmpty() {
+		return this.entrySet().isEmpty();
+	}
+
+	@Override
+	default boolean containsKey(Object key) {
+		for (Entry entry : this.entrySet())
+			if (Objects.equals(entry.getKey(), key))
+				return true;
+
+		return false;
+	}
+
+	@Override
+	default boolean containsValue(Object value) {
+		for (Entry entry : this.entrySet())
+			if (Objects.equals(entry.getValue(), value))
+				return true;
+
+		return false;
+	}
+
+	@Override
+	default V get(Object key) {
+		for (Entry<K, V> entry : this.entrySet())
+			if (Objects.equals(entry.getKey(), key))
+				return entry.getValue();
+		return null;
+	}
+
+	@Override
+	default V put(K key, V value) {
+		for (Entry<K, V> entry : this.entrySet())
+			if (Objects.equals(entry.getKey(), key))
+				return entry.setValue(value);
+
+		this.entrySet().add(new SimpleEntry<>(key, value));
+		return null;
+	}
+
+	@Override
+	default V remove(Object key) {
+		V old = null;
+
+		for (Entry<K, V> entry : this.entrySet())
+			if (Objects.equals(entry.getKey(), key)) {
+				old = entry.getValue();
+				this.entrySet().remove(entry);
+			}
+
+		return old;
+	}
+
+	@Override
+	default void clear() {
+		this.entrySet().clear();
+	}
+
 	/**
-	 * Get a bean for the instance give. The given bean will work as a remote for the given instance. The bean will work as if the given instance is a
-	 * bean and returned bean is the actual instance.
-	 *
-	 * @param instance to get a bean for
-	 * @param <K>      the type of keys in the returned bean
-	 * @param <V>      the type of values in the returned bean
-	 * @return a bean remote for the given instance
-	 * @throws NullPointerException if the given instance is null
+	 * A simple entry that holds a final key and a changeable value.
 	 */
-	static <K, V> FullBean<K, V> forInstance(Object instance) {
-		Objects.requireNonNull(instance, "instance");
-		return new FullBean<K, V>() {
-			/**
-			 * The properties set for this full bean.
-			 */
-			private BeanProperties<K, V> beanProperties;
-			@Override
-			public BeanProperties<K, V> getBeanProperties() {
-				if (this.beanProperties == null) {
-					this.beanProperties = new BeanProperties<>(this);
-					Set<K> keys = new HashSet<>(10);
+	class SimpleEntry<K, V> implements Entry<K, V> {
+		/**
+		 * The key of this entry.
+		 */
+		final protected K key;
+		/**
+		 * The value of this entry.
+		 */
+		protected V value;
 
-					Property property;
-					K key;
-					for (Field field : Reflect$.getAllFields(instance.getClass()))
-						if ((property = field.getAnnotation(Property.class)) != null && !keys.contains(key = this.getKey(field)))
-							this.beanProperties.add(new VirtualEntry<>(instance, this, field, property, key));
-				}
+		/**
+		 * Construct a new simple entry.
+		 *
+		 * @param key   the key of this entry
+		 * @param value the initial value
+		 */
+		public SimpleEntry(K key, V value) {
+			this.key = key;
+			this.value = value;
+		}
 
-				return this.beanProperties;
+		@Override
+		public K getKey() {
+			return this.key;
+		}
+
+		@Override
+		public V getValue() {
+			return this.value;
+		}
+
+		@Override
+		public V setValue(V v) {
+			return this.value = v;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(getKey());
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			} else if (o instanceof Entry) {
+				Entry entry = (Entry) o;
+				return Objects.equals(this.key, entry.getKey());
 			}
-			@Override
-			public VirtualEntry<K, V> getEntry(K key) {
-				BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
-				Field field = this.getField(key);
-
-				if (field != null)
-					return this.getEntry(key, field);
-
-				return Object$.requireNonNullElseGet(beanProperties.get(key),
-						() -> new VirtualEntry<>(instance, this, beanProperties, key));
-			}
-			@Override
-			public VirtualEntry<K, V> getEntry(K key, Field field) {
-				Objects.requireNonNull(field, "field");
-				Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
-				BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
-
-				return Object$.requireNonNullElseGet(beanProperties.get(key),
-						() -> new VirtualEntry<>(instance, this, beanProperties, field, property, key));
-			}
-			@Override
-			public Field getField(K key) {
-				BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
-				VirtualEntry<K, V> entry = beanProperties.get(key);
-
-				if (entry == null) {
-					for (Field field : Reflect$.getAllFields(instance.getClass()))
-						if (field.isAnnotationPresent(Property.class) && Objects.equals(key, this.getKey(field)))
-							return field;
-					return null;
-				} else {
-					return entry.field;
-				}
-			}
-		};
-	}
-	@Override
-	default VirtualEntry<K, V> getEntry(K key) {
-		BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
-		Field field = this.getField(key);
-
-		if (field != null)
-			return this.getEntry(key, field);
-
-		return Object$.requireNonNullElseGet(beanProperties.get(key),
-				() -> new VirtualEntry<>(this, this, beanProperties, key));
-	}
-	@Override
-	default VirtualEntry<K, V> getEntry(K key, Field field) {
-		Objects.requireNonNull(field, "field");
-		Property property = Objects.requireNonNull(field.getAnnotation(Property.class), "field.getAnnotation(Property.class)");
-		BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
-
-		return Object$.requireNonNullElseGet(beanProperties.get(key),
-				() -> new VirtualEntry<>(this, this, beanProperties, field, property, key));
-	}
-	@Override
-	default Field getField(K key) {
-		BeanProperties<K, V> beanProperties = Objects.requireNonNull(this.getBeanProperties(), "getBeanProperties()");
-		VirtualEntry<K, V> entry = beanProperties.get(key);
-
-		return entry == null ? Bean.super.getField(key) : entry.field;
+			return false;
+		}
 	}
 }

@@ -12,7 +12,7 @@
  * All about beans.
  *
  * @author LSaferSE
- * @version 1 release (25-Nov-2019)
+ * @version 2 release (03-Apr-2020)
  * @since 23-Nov-19
  */
 package cufy.beans;
