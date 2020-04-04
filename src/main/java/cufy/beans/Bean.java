@@ -413,7 +413,7 @@ public interface Bean<K, V> extends Map<K, V> {
 				throw new IllegalArgumentException(field + " is not annotated with " + Property.class);
 
 			MetaClazz meta = field.getAnnotation(Property.class).type();
-			return meta.family() == MetaClazz.util.class ? MetaClazz.util.get(meta) : Clazz.of((Class) field.getType());
+			return meta.family() == MetaClazz.util.class ? Clazz.of((Class) field.getType()) : MetaClazz.util.get(meta);
 		}
 
 		/**
