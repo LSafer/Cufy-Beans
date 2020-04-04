@@ -9,10 +9,8 @@
  */
 package cufy.beans;
 
-import cufy.lang.JSONConverter;
 import cufy.meta.MetaClazz;
 import cufy.meta.MetaObject;
-import cufy.meta.MetaReference;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,7 +19,7 @@ public class BeanTest {
 	@Test
 	public void _forInstance_put_get_size() {
 		Object object = new Object() {
-			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), converter = @MetaReference(type = JSONConverter.class))
+			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), type = @MetaClazz(Integer.class))
 			private int property0 = 90;
 		};
 
@@ -39,7 +37,7 @@ public class BeanTest {
 	@Test
 	public void _forInstance_struct_put_get_size() {
 		Object object = new Object() {
-			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), converter = @MetaReference(type = JSONConverter.class))
+			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)))
 			private Integer integer = 45;
 		};
 
@@ -70,7 +68,7 @@ public class BeanTest {
 	@Test
 	public void _struct_put_get_size() {
 		Bean<Object, Object> bean = new Bean<Object, Object>() {
-			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), converter = @MetaReference(type = JSONConverter.class))
+			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), type = @MetaClazz(Integer.class))
 			private int property0 = 90;
 		};
 

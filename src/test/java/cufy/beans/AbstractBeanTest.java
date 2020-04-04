@@ -9,10 +9,8 @@
  */
 package cufy.beans;
 
-import cufy.lang.JSONConverter;
 import cufy.meta.MetaClazz;
 import cufy.meta.MetaObject;
-import cufy.meta.MetaReference;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,7 +19,7 @@ public class AbstractBeanTest {
 	@Test
 	public void _struct_put_get_size() {
 		AbstractBean<Object, Object> bean = new AbstractBean<Object, Object>() {
-			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), converter = @MetaReference(type = JSONConverter.class))
+			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)))
 			private Integer integer = 45;
 		};
 
