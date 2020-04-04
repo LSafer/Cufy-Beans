@@ -412,8 +412,8 @@ public interface Bean<K, V> extends Map<K, V> {
 			if (!field.isAnnotationPresent(Property.class))
 				throw new IllegalArgumentException(field + " is not annotated with " + Property.class);
 
-			Clazz klazz = MetaClazz.util.get(field.getAnnotation(Property.class).type());
-			return klazz.getFamily() == MetaClazz.util.class ? (Clazz<V>) Clazz.of(field.getClass()) : klazz;
+			MetaClazz meta = field.getAnnotation(Property.class).type();
+			return meta.family() == MetaClazz.util.class ? MetaClazz.util.get(meta) : Clazz.of((Class) field.getType());
 		}
 
 		/**
