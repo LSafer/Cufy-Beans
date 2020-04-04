@@ -509,5 +509,32 @@ public interface Bean<K, V> extends Map<K, V> {
 
 			return false;
 		}
+
+		/**
+		 * Get the field that holds the value of this entry.
+		 *
+		 * @return the field that holds the value of this entry.
+		 */
+		public Field getField() {
+			return this.field;
+		}
+
+		/**
+		 * Get the meta-data of this entry.
+		 *
+		 * @return the meta-data of this entry.
+		 */
+		public Property getMeta() {
+			return this.meta;
+		}
+
+		/**
+		 * Get the type of the value of this entry.
+		 *
+		 * @return the type of the value of this entry.
+		 */
+		public Clazz<V> getType() {
+			return this.type;
+		}
 	}
 }
