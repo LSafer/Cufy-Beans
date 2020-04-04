@@ -329,11 +329,10 @@ public interface Bean<K, V> extends Map<K, V> {
 
 			this.field = field;
 			this.instance = instance;
-
+			this.key = getKey(field);
+			this.type = getType(field);
 			this.meta = field.getAnnotation(Property.class);
 			this.converter = MetaReference.util.get(meta.converter());
-			this.key = this.meta.key().converter().klass() == MetaReference.util.class ? (K) field.getName() : MetaObject.util.get(this.meta.key());
-			this.type = MetaClazz.util.get(this.meta.type());
 		}
 
 		/**
@@ -354,10 +353,9 @@ public interface Bean<K, V> extends Map<K, V> {
 			this.field = field;
 			this.instance = instance;
 			this.key = key;
-
+			this.type = getType(field);
 			this.meta = field.getAnnotation(Property.class);
 			this.converter = MetaReference.util.get(meta.converter());
-			this.type = MetaClazz.util.get(this.meta.type());
 		}
 
 		/**
@@ -398,6 +396,24 @@ public interface Bean<K, V> extends Map<K, V> {
 
 			MetaObject key = field.getAnnotation(Property.class).key();
 			return key.converter().type() == MetaReference.util.class ? (K) field.getName() : MetaObject.util.get(key);
+		}
+
+		/**
+		 * Get the clazz of the given field.
+		 *
+		 * @param field to get the clazz of
+		 * @param <V>   the type of the clazz
+		 * @return the clazz of the field given
+		 * @throws NullPointerException     if the given 'field' is null
+		 * @throws IllegalArgumentException if the given field is not annotated with {@link Property}
+		 */
+		public static <V> Clazz<V> getType(Field field) {
+			Objects.requireNonNull(field, "field");
+			if (!field.isAnnotationPresent(Property.class))
+				throw new IllegalArgumentException(field + " is not annotated with " + Property.class);
+
+			Clazz klazz = MetaClazz.util.get(field.getAnnotation(Property.class).type());
+			return klazz.getFamily() == MetaClazz.util.class ? (Clazz<V>) Clazz.of(field.getClass()) : klazz;
 		}
 
 		/**
@@ -442,8 +458,8 @@ public interface Bean<K, V> extends Map<K, V> {
 				throw new IllegalArgumentException(field + " is not annotated with " + Bean.Property.class);
 
 			Bean.Property meta = field.getAnnotation(Bean.Property.class);
-			Clazz type = MetaClazz.util.get(meta.type());
 			Converter converter = MetaReference.util.get(meta.converter());
+			Clazz type = getType(field);
 
 			value = converter.convert(value, value, type);
 
