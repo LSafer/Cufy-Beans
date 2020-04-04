@@ -445,10 +445,7 @@ public interface Bean<K, V> extends Map<K, V> {
 			Clazz type = MetaClazz.util.get(meta.type());
 			Converter converter = MetaReference.util.get(meta.converter());
 
-			if (!type.getKlass().isInstance(value))
-				value = converter.convert(value, type);
-			if (!field.getType().isInstance(value))
-				value = converter.convert(value, Clazz.of(field.getType()));
+			value = converter.convert(value, value, type);
 
 			try {
 				field.setAccessible(true);
@@ -478,10 +475,7 @@ public interface Bean<K, V> extends Map<K, V> {
 		@Override
 		public V setValue(V value) {
 			try {
-				if (!this.type.getKlass().isInstance(value))
-					value = this.converter.convert(value, this.type);
-				if (!this.field.getType().isInstance(value))
-					value = this.converter.convert(value, Clazz.of(this.field.getType()));
+				value = this.converter.convert(value, value, this.type);
 
 				this.field.setAccessible(true);
 				V old = (V) this.field.get(this.instance);
