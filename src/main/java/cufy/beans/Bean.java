@@ -479,16 +479,10 @@ public interface Bean<K, V> extends Map<K, V> {
 		 */
 		private static <V> V setValue(Field field, Object instance, V value, Converter converter, Clazz type) {
 			try {
-				field.setAccessible(true);
-
-				V old = (V) field.get(instance);
-
-				//to avoid re-set a final value
-				if (value == old)
-					return old;
-
 				value = converter.convert(value, value, type);
 
+				field.setAccessible(true);
+				V old = (V) field.get(instance);
 				field.set(instance, value);
 				return old;
 			} catch (IllegalAccessException e) {
