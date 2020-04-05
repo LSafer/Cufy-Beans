@@ -458,15 +458,37 @@ public interface Bean<K, V> extends Map<K, V> {
 			if (!field.isAnnotationPresent(Bean.Property.class))
 				throw new IllegalArgumentException(field + " is not annotated with " + Bean.Property.class);
 
-			Bean.Property meta = field.getAnnotation(Bean.Property.class);
-			Converter converter = MetaReference.util.get(meta.converter());
+			Converter converter = MetaReference.util.get(field.getAnnotation(Property.class).converter());
 			Clazz type = getType(field);
 
-			value = converter.convert(value, value, type);
+			return setValue(field, instance, value, converter, type);
+		}
 
+		/**
+		 * Set the value of the given field on the given instance to the given value.
+		 *
+		 * @param instance  to set the value to
+		 * @param converter the converter of the field
+		 * @param type      the type of the field
+		 * @param value     to be set
+		 * @param field     that holds the value
+		 * @param <V>       the type of the value
+		 * @return the previous value stored at that field in that instance
+		 * @throws NullPointerException     if the given 'field' or 'instance' is null
+		 * @throws IllegalArgumentException if the given 'field' is not annotated with {@link Bean.Property}
+		 */
+		private static <V> V setValue(Field field, Object instance, V value, Converter converter, Clazz type) {
 			try {
 				field.setAccessible(true);
+
 				V old = (V) field.get(instance);
+
+				//to avoid re-set a final value
+				if (value == old)
+					return old;
+
+				value = converter.convert(value, value, type);
+
 				field.set(instance, value);
 				return old;
 			} catch (IllegalAccessException e) {
@@ -491,17 +513,7 @@ public interface Bean<K, V> extends Map<K, V> {
 
 		@Override
 		public V setValue(V value) {
-			try {
-				value = this.converter.convert(value, value, this.type);
-
-				this.field.setAccessible(true);
-				V old = (V) this.field.get(this.instance);
-				this.field.set(this.instance, value);
-
-				return old;
-			} catch (IllegalAccessException e) {
-				throw (IllegalAccessError) new IllegalAccessError().initCause(e);
-			}
+			return setValue(this.field, this.instance, value, this.converter, this.type);
 		}
 
 		@Override

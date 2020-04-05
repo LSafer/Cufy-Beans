@@ -17,21 +17,27 @@ import org.junit.Test;
 @SuppressWarnings({"JavaDoc"})
 public class BeanTest {
 	@Test
-	public void _forInstance_put_get_size() {
+	public void _forInstance_put_get_size() throws ReflectiveOperationException {
 		Object object = new Object() {
 			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), type = @MetaClazz(Integer.class))
 			private int property0 = 90;
+
+			@Bean.Property
+			public int p;
 		};
 
 		Bean<Object, Object> bean = Bean.forInstance(object);
 
 		bean.put(false, "700");
+		bean.put("p", 10);
 
 		//state
-		Assert.assertEquals("Wrong size calc", 1, bean.size());
+		Assert.assertEquals("Wrong size calc", 2, bean.size());
 
 		//key = false
 		Assert.assertEquals("Field value stored wrongly", 700, bean.get(false));
+		Assert.assertEquals("Default key not recognized", 10, bean.get("p"));
+		Assert.assertEquals("Default key not recognized", 10, object.getClass().getDeclaredField("p").get(object));
 	}
 
 	@Test
