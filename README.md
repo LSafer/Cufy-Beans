@@ -5,6 +5,10 @@
 - Interface based. Any class can implement.
 - fields tris to convert the value before storing it.
 
+### Dependencies
+- Util [(cufyorg:util)](https://github.com/cufyorg/util)
+- Base [(cufyorg:base)](https://github.com/cufyorg/base)
+
 ---
 
 A bean example:
