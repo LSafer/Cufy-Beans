@@ -1,12 +1,3 @@
-/*
- * Copyright (c) 2019, LSafer, All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- * -You can edit this file (except the header).
- *  -If you have change anything in this file. You
- *    shall mention that this file has been edited.
- *    By adding a new header (at the bottom of this header)
- *    with the word "Editor" on top of it.
- */
 package cufy.beans;
 
 import cufy.meta.MetaClazz;
@@ -19,11 +10,10 @@ public class BeanTest {
 	@Test
 	public void _forInstance_put_get_size() throws ReflectiveOperationException {
 		Object object = new Object() {
-			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), type = @MetaClazz(Integer.class))
-			private int property0 = 90;
-
 			@Bean.Property
 			public int p;
+			@Bean.Property(key = @MetaObject(value = "false", type = @MetaClazz(Boolean.class)), type = @MetaClazz(Integer.class))
+			private int property0 = 90;
 		};
 
 		Bean<Object, Object> bean = Bean.forInstance(object);
